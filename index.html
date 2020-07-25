@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8" />
+    <title>Rivers of India</title>
+    <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no" />
+    <script src="https://api.mapbox.com/mapbox-gl-js/v1.11.1/mapbox-gl.js"></script>
+    <link href="https://api.mapbox.com/mapbox-gl-js/v1.11.1/mapbox-gl.css" rel="stylesheet" />
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+        }
+
+        #map {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            width: 100%;
+        }
+
+        .map-overlay {
+            font: 12px/20px 'Helvetica Neue', Arial, Helvetica, sans-serif;
+            background-color: #fff;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+            border-radius: 3px;
+            position: absolute;
+            width: 25%;
+            top: 10px;
+            left: 10px;
+            padding: 10px;
+            display: none;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="map"></div>
+    <div id="map-overlay" class="map-overlay"></div>
+
+    <script>
+        mapboxgl.accessToken = 'pk.eyJ1IjoiYmtvd3NoaWsiLCJhIjoiY2lrYzhnazQyMG05anZ1a3BlZ2FlZGJvNCJ9.A5q4MktWCcSLqk7FmWbzJw';
+        var map = new mapboxgl.Map({
+            container: 'map',
+            style: 'mapbox://styles/mapbox/light-v10',
+            zoom: 4,
+            center: [78.85, 22.43],
+            hash: true
+        });
+
+        var overlay = document.getElementById('map-overlay');
+
+        // Create a popup, but don't add it to the map yet.
+        var popup = new mapboxgl.Popup({
+            closeButton: false
+        });
+
+        map.on('load', function () {
+
+            map.addSource('rivers', {
+                type: 'vector',
+                url: 'mapbox://bkowshik.c0jad7hd'
+            });
+
+            map.addLayer({
+                'id': 'rivers',
+                'type': 'line',
+                'source': 'rivers',
+                'source-layer': 'rivers',
+                'layout': {
+                    'line-join': 'round',
+                    'line-cap': 'round'
+                },
+                'paint': {
+                    'line-color': ['case',
+                        ['!', ['has', 'name']], '#1d91c0',
+                        '#1d91c0'
+                    ],
+                    'line-width': [
+                        'interpolate',
+                        ['exponential', 1],
+                        ['zoom'],
+                        4,
+                        0.5,
+                        7,
+                        0.75,
+                        10,
+                        2
+                    ]
+                }
+            });
+
+            map.on('mousemove', 'rivers', function (e) {
+                // Change the cursor style as a UI indicator.
+                map.getCanvas().style.cursor = 'pointer';
+
+                // Single out the first found feature.
+                var feature = e.features[0];
+
+                // Query the rivers layer visible in the map.
+                var relatedFeatures = map.querySourceFeatures('rivers', {
+                    sourceLayer: 'rivers',
+                    // filter: ['in', 'COUNTY', feature.properties.COUNTY]
+                });
+
+                // Render found features in an overlay.
+                overlay.innerHTML = '';
+
+                var featureName = 'ID: ' + feature.properties.id + (feature.properties.name ? ', Name: ' + feature.properties.name : '');
+                var title = document.createElement('strong');
+                title.textContent = featureName;
+
+                var properties = document.createElement('div');
+                properties.textContent = JSON.stringify(feature.properties);
+
+                overlay.appendChild(title);
+                overlay.appendChild(properties);
+                overlay.style.display = 'block';
+
+                // Display a popup with the name of the feature.
+                popup
+                    .setLngLat(e.lngLat)
+                    .setText(featureName)
+                    .addTo(map);
+            });
+
+            map.on('mouseleave', 'rivers', function () {
+                map.getCanvas().style.cursor = '';
+                popup.remove();
+                // map.setFilter('rivers-highlighted', ['in', 'COUNTY', '']);
+                overlay.style.display = 'none';
+            });
+
+        });
+    </script>
+
+</body>
+
+</html>

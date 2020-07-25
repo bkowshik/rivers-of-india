@@ -1,2 +1,2 @@
-# rivers-of-india
-Rivers of India.
+# Rivers of India
+
