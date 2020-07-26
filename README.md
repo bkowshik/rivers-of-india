@@ -2,4 +2,4 @@
 
 Ref: https://bkowshik.github.io/rivers-of-india/
 
-![](static/rivers-of-india.png)
+![](static/images/rivers-of-india.png)
